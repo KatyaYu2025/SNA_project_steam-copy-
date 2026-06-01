@@ -1,0 +1,22 @@
+{
+  "model_params": {
+    "embed_dim": 64,
+    "hidden_dim": 128,
+    "epochs": 200,
+    "lr": 0.01,
+    "top_k_edges": 20
+  },
+  "auc_roc": 0.9664,
+  "auc_pr": 0.9269,
+  "final_loss": 0.830868,
+  "precision@10": 0.9,
+  "recall@10": 0.36,
+  "precision@20": 0.9,
+  "recall@20": 0.72,
+  "precision@50": 0.5,
+  "recall@50": 1.0,
+  "precision@100": 0.3333,
+  "recall@100": 1.0,
+  "precision@200": 0.3333,
+  "recall@200": 1.0
+}
