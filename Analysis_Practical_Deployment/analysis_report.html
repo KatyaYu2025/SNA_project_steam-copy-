@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Steam SNA Project — Analysis Report</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; background: #f5f7fa; color: #333; line-height: 1.6; }
+  .header { background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%); color: #fff; padding: 48px 0 36px; text-align: center; }
+  .header h1 { font-size: 2.2rem; font-weight: 700; letter-spacing: -0.5px; margin-bottom: 8px; }
+  .header p { font-size: 1.05rem; opacity: 0.8; }
+  .container { max-width: 1000px; margin: 0 auto; padding: 0 24px; }
+  section { background: #fff; border-radius: 10px; box-shadow: 0 1px 4px rgba(0,0,0,0.08); margin: 28px 0; padding: 32px 36px; }
+  section h2 { font-size: 1.5rem; font-weight: 700; color: #1a1a2e; border-bottom: 3px solid #0f3460; padding-bottom: 8px; margin-bottom: 20px; }
+  section h3 { font-size: 1.15rem; font-weight: 600; color: #16213e; margin: 20px 0 10px; }
+  table { width: 100%; border-collapse: collapse; margin: 16px 0; font-size: 0.92rem; }
+  th, td { padding: 10px 14px; text-align: left; border-bottom: 1px solid #e8ecf0; }
+  th { background: #f0f2f5; font-weight: 600; color: #1a1a2e; }
+  tr:hover { background: #f8f9fb; }
+  .stat-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 16px; margin: 16px 0; }
+  .stat-card { background: #f8f9fb; border-radius: 8px; padding: 16px; text-align: center; border: 1px solid #e8ecf0; }
+  .stat-card .num { font-size: 1.6rem; font-weight: 700; color: #0f3460; }
+  .stat-card .label { font-size: 0.8rem; color: #666; margin-top: 4px; text-transform: uppercase; letter-spacing: 0.5px; }
+  .card-row { display: flex; gap: 20px; flex-wrap: wrap; }
+  .insight-box { background: #eef5ff; border-left: 4px solid #0f3460; border-radius: 4px; padding: 14px 18px; margin: 14px 0; font-size: 0.93rem; }
+  .img-row { display: flex; gap: 20px; flex-wrap: wrap; justify-content: center; margin: 20px 0; }
+  .img-row figure { flex: 1 1 300px; max-width: 480px; text-align: center; }
+  .img-row img { width: 100%; border-radius: 6px; border: 1px solid #e0e0e0; }
+  .img-row figcaption { font-size: 0.85rem; color: #666; margin-top: 6px; }
+  .model-badge { display: inline-block; background: #0f3460; color: #fff; border-radius: 20px; padding: 2px 12px; font-size: 0.8rem; font-weight: 600; }
+  .model-badge.best { background: #1b8a2d; }
+  footer { text-align: center; padding: 32px 0 24px; font-size: 0.85rem; color: #999; }
+  @media (max-width: 640px) { section { padding: 20px 18px; } .header h1 { font-size: 1.6rem; } }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>Steam Social Network Analysis</h1>
+  <p>Friend Prediction via Shared Game Libraries &middot; Comprehensive Analysis Report</p>
+</div>
+
+<div class="container">
+
+<!-- 1. Project Overview -->
+<section>
+  <h2>1. Project Overview</h2>
+  <p>This project analyzes the Steam gaming social network by constructing a bipartite graph of 500 players and 17,182 games from five gaming communities. Using structural, graph-based, and behavioral features, we predict friendships from shared game libraries and identify cross-genre bridge players who connect otherwise disparate gaming communities. The pipeline spans data collection via the Steam Web API, feature engineering, homophily analysis, link prediction across six heuristic and three machine learning methods, and a Graph Autoencoder (GAE) achieving 0.9664 AUC-ROC.</p>
+  <div class="stat-grid">
+    <div class="stat-card"><div class="num">500</div><div class="label">Players</div></div>
+    <div class="stat-card"><div class="num">17,182</div><div class="label">Games</div></div>
+    <div class="stat-card"><div class="num">184,538</div><div class="label">Bipartite Edges</div></div>
+    <div class="stat-card"><div class="num">125</div><div class="label">Friend Pairs</div></div>
+    <div class="stat-card"><div class="num">124,625</div><div class="label">Non-Friend Pairs</div></div>
+    <div class="stat-card"><div class="num">1:997</div><div class="label">Class Ratio</div></div>
+  </div>
+</section>
+
+<!-- 2. Data Collection & Graph Construction -->
+<section>
+  <h2>2. Data Collection &amp; Graph Construction</h2>
+  <p>Data was collected from the Steam Web API targeting five gaming groups. For each player, we retrieved owned games with playtime and friend lists. The bipartite graph connects players to games they own; edge weights reflect total hours played.</p>
+
+  <h3>Bipartite Graph Statistics</h3>
+  <table>
+    <tr><th>Metric</th><th>Value</th></tr>
+    <tr><td>Total nodes</td><td>17,682</td></tr>
+    <tr><td>Total edges</td><td>184,538</td></tr>
+    <tr><td>Player nodes</td><td>500</td></tr>
+    <tr><td>Game nodes</td><td>17,182</td></tr>
+    <tr><td>Target game nodes</td><td>15</td></tr>
+    <tr><td>Density</td><td>0.00118</td></tr>
+    <tr><td>Total playtime (hours)</td><td>6,082,618</td></tr>
+    <tr><td>Avg player degree</td><td>369.08 (median: 229)</td></tr>
+    <tr><td>Avg game degree</td><td>10.74 (median: 3)</td></tr>
+  </table>
+
+  <h3>Top Games by Player Count</h3>
+  <table>
+    <tr><th>Rank</th><th>Game</th><th>Players</th></tr>
+    <tr><td>1</td><td>Counter-Strike 2</td><td>465</td></tr>
+    <tr><td>2</td><td>Left 4 Dead 2</td><td>417</td></tr>
+    <tr><td>3</td><td>PAYDAY 2</td><td>416</td></tr>
+    <tr><td>4</td><td>Garry's Mod</td><td>358</td></tr>
+    <tr><td>5</td><td>Portal 2</td><td>356</td></tr>
+    <tr><td>6</td><td>Unturned</td><td>344</td></tr>
+    <tr><td>7</td><td>Half-Life 2: Deathmatch</td><td>342</td></tr>
+    <tr><td>8</td><td>Terraria</td><td>342</td></tr>
+    <tr><td>9</td><td>Half-Life Deathmatch: Source</td><td>334</td></tr>
+    <tr><td>10</td><td>Half-Life 2</td><td>332</td></tr>
+  </table>
+
+  <div class="insight-box">
+    <strong>Class Imbalance:</strong> Only 125 friendship edges exist among 124,750 possible player pairs (1:997 ratio). This extreme imbalance drives evaluation toward AUC-ROC rather than Precision@k.
+  </div>
+</section>
+
+<!-- 3. Feature Engineering -->
+<section>
+  <h2>3. Feature Engineering</h2>
+  <p>Eight features were computed for every player pair (124,750 rows) from the bipartite graph and genre mapping:</p>
+  <table>
+    <tr><th>Feature</th><th>Category</th><th>Description</th></tr>
+    <tr><td>Jaccard Similarity</td><td>Structural</td><td>Shared games / total unique games</td></tr>
+    <tr><td>Weighted Jaccard</td><td>Structural</td><td>Min/Max playtime ratio on shared games</td></tr>
+    <tr><td>Common Neighbors</td><td>Structural</td><td>Number of shared games (bipartite degree)</td></tr>
+    <tr><td>Cosine Similarity</td><td>Structural</td><td>Binary vector cosine on game sets</td></tr>
+    <tr><td>Adamic-Adar</td><td>Graph-based</td><td>Sum of 1/log(degree) over shared games</td></tr>
+    <tr><td>Preferential Attachment</td><td>Graph-based</td><td>Product of player bipartite degrees</td></tr>
+    <tr><td>Playtime Correlation</td><td>Behavioral</td><td>Pearson r on shared game hours (≥3 games)</td></tr>
+    <tr><td>Genre Overlap</td><td>Behavioral</td><td>Genre-set Jaccard via keyword heuristic</td></tr>
+  </table>
+
+  <h3>Genre Mapping</h3>
+  <p>A keyword heuristic was applied to game names to assign primary genres, covering <strong>~43% of edges</strong> and <strong>~53% per-player</strong>. The genre overlap feature was computed as Jaccard similarity on genre sets for each player pair, replacing the initial stub value of -1.0.</p>
+
+  <div class="insight-box">
+    <strong>Key Insight:</strong> Preferential Attachment produces raw values reaching ~22M; log-transforming (<code>np.log1p</code>) before feeding to classifiers avoids sklearn overflow warnings. Playtime Correlation is near-zero for most pairs since few share ≥3 games with non-zero variance.
+  </div>
+</section>
+
+<!-- 4. Homophily Analysis -->
+<section>
+  <h2>4. Homophily Analysis</h2>
+  <p>We compared Jaccard game-similarity distributions between friend and non-friend pairs across the full dataset and stratified by playtime quartile.</p>
+
+  <h3>Overall Jaccard Distribution</h3>
+  <table>
+    <tr><th>Group</th><th>Mean</th><th>Median</th><th>Count</th></tr>
+    <tr><td>Friends</td><td>0.1221</td><td>0.1125</td><td>125</td></tr>
+    <tr><td>Non-friends</td><td>0.0794</td><td>0.0762</td><td>124,625</td></tr>
+  </table>
+  <p>Friend pairs show <strong>~54% higher mean Jaccard</strong> than non-friend pairs, confirming moderate homophily in game preferences.</p>
+
+  <h3>Playtime-Stratified Homophily</h3>
+  <table>
+    <tr><th>Quartile</th><th>Friend Mean</th><th>Non-Friend Mean</th><th>Friend Count</th></tr>
+    <tr><td>Q1 (low playtime)</td><td>0.1200</td><td>0.0684</td><td>5</td></tr>
+    <tr><td>Q2</td><td>0.1394</td><td>0.0867</td><td>14</td></tr>
+    <tr><td>Q3</td><td>0.1218</td><td>0.0841</td><td>12</td></tr>
+    <tr><td>Q4 (high playtime)</td><td>0.1030</td><td>0.0823</td><td>5</td></tr>
+  </table>
+  <p>Friends in middle quartiles (Q2&ndash;Q3) exhibit the strongest homophily. The gap narrows in Q4, suggesting high-playtime players share games broadly regardless of friendship.</p>
+
+  <div class="img-row">
+    <figure><img src="../Analysis_Homophily_and_Genre_Bridges/homophily_plots/jaccard_distribution.png" alt="Jaccard Distribution"><figcaption>Jaccard similarity: friend vs non-friend pairs</figcaption></figure>
+    <figure><img src="../Analysis_Homophily_and_Genre_Bridges/homophily_plots/playtime_stratified.png" alt="Playtime Stratified Homophily"><figcaption>Playtime-stratified homophily by quartile</figcaption></figure>
+  </div>
+  <div class="img-row">
+    <figure><img src="../Analysis_Homophily_and_Genre_Bridges/homophily_plots/genre_similarity.png" alt="Genre Similarity"><figcaption>Genre overlap similarity distribution</figcaption></figure>
+    <figure><img src="../Analysis_Homophily_and_Genre_Bridges/homophily_plots/summary_panel.png" alt="Summary Panel"><figcaption>Summary panel of all homophily plots</figcaption></figure>
+  </div>
+</section>
+
+<!-- 5. Link Prediction Results -->
+<section>
+  <h2>5. Link Prediction Results</h2>
+  <p>All 124,750 player pairs were scored and evaluated against ground-truth friendships. Methods span six heuristic measures, three ML classifiers, Node2Vec embeddings, and a Graph Autoencoder.</p>
+
+  <table>
+    <tr><th>Model</th><th>AUC-ROC</th><th>AUC-PR</th><th>P@10</th><th>P@50</th><th>P@200</th></tr>
+    <tr><td><span class="model-badge best">Best</span> GAE (Graph Autoencoder)</td><td><strong>0.9664</strong></td><td><strong>0.9269</strong></td><td><strong>0.90</strong></td><td>0.50</td><td>0.33</td></tr>
+    <tr><td>Logistic Regression (8 features)</td><td>0.8707</td><td>0.0135</td><td>0.00</td><td>0.00</td><td>0.026</td></tr>
+    <tr><td>Adamic-Adar</td><td>0.8263</td><td>0.0060</td><td>0.00</td><td>0.00</td><td>0.00</td></tr>
+    <tr><td>Random Forest</td><td>0.8126</td><td>0.0082</td><td>0.02</td><td>0.008</td><td>0.008</td></tr>
+    <tr><td>Common Neighbors</td><td>0.8117</td><td>0.0054</td><td>0.00</td><td>0.00</td><td>0.00</td></tr>
+    <tr><td>Preferential Attachment</td><td>0.7796</td><td>0.0034</td><td>0.00</td><td>0.00</td><td>0.00</td></tr>
+    <tr><td>XGBoost</td><td>0.7551</td><td>0.0125</td><td>0.04</td><td>0.028</td><td>0.014</td></tr>
+    <tr><td>Jaccard</td><td>0.7343</td><td>0.0083</td><td>0.00</td><td>0.04</td><td>0.05</td></tr>
+    <tr><td>Cosine</td><td>0.7337</td><td>0.0082</td><td>0.00</td><td>0.02</td><td>0.04</td></tr>
+    <tr><td>Node2Vec (cosine)</td><td>0.5750</td><td>0.0020</td><td>0.00</td><td>0.00</td><td>0.01</td></tr>
+    <tr><td>Weighted Jaccard</td><td>0.5480</td><td>0.0011</td><td>0.00</td><td>0.00</td><td>0.00</td></tr>
+    <tr><td>Playtime Correlation</td><td>0.4610</td><td>0.0008</td><td>0.00</td><td>0.00</td><td>0.00</td></tr>
+  </table>
+
+  <div class="insight-box">
+    <strong>Key Findings:</strong> The GAE dramatically outperforms all other methods, achieving 0.9664 AUC-ROC and 0.9269 AUC-PR — the only model to produce meaningful precision at top ranks (0.90 P@10). Logistic Regression with 8 hand-crafted features ranks second (0.8707) but suffers from extreme class imbalance (0 P@50). Heuristic methods cap at ~0.83 AUC-ROC (Adamic-Adar). Node2Vec embeddings alone (0.575) are weak but proved essential as input features to the GAE.
+  </div>
+</section>
+
+<!-- 6. Bridge Player Analysis -->
+<section>
+  <h2>6. Bridge Player Analysis</h2>
+  <p>Bridge players are users who engage with a diverse range of game genres, potentially serving as cross-community connectors. We computed genre entropy for each player and selected the top 10% (50 players) with highest entropy.</p>
+
+  <h3>Bridge Player Statistics</h3>
+  <div class="stat-grid">
+    <div class="stat-card"><div class="num">50</div><div class="label">Bridge Players (top 10%)</div></div>
+    <div class="stat-card"><div class="num">2.36</div><div class="label">Max Entropy</div></div>
+    <div class="stat-card"><div class="num">0.92</div><div class="label">Min Entropy (overall)</div></div>
+    <div class="stat-card"><div class="num">2</div><div class="label">Confirmed Cross-Genre Bridges</div></div>
+  </div>
+
+  <h3>Top 5 Bridge Players by Genre Entropy</h3>
+  <table>
+    <tr><th>SteamID (suffix)</th><th>Genre Entropy</th><th>Genres</th><th>Games Owned</th></tr>
+    <tr><td>76561198214557257</td><td>2.361</td><td>16</td><td>56</td></tr>
+    <tr><td>76561198851552649</td><td>2.343</td><td>19</td><td>83</td></tr>
+    <tr><td>76561198093653706</td><td>2.342</td><td>18</td><td>127</td></tr>
+    <tr><td>76561198402381154</td><td>2.323</td><td>21</td><td>137</td></tr>
+    <tr><td>76561198127370976</td><td>2.319</td><td>17</td><td>67</td></tr>
+  </table>
+
+  <h3>Ego-Network Clustering</h3>
+  <p>For bridge players with existing friendships, we applied K-Means clustering on ego-network genre vectors. Two bridge players were confirmed as cross-genre bridges:</p>
+  <table>
+    <tr><th>Player</th><th>Entropy</th><th>Friends</th><th>Clusters</th><th>Silhouette</th></tr>
+    <tr><td>76561198066127782</td><td>2.215</td><td>10</td><td>2</td><td>0.488</td></tr>
+    <tr><td>76561198069291813</td><td>2.143</td><td>3</td><td>2</td><td>0.468</td></tr>
+  </table>
+  <p>These players connect friend groups with distinct genre preferences (Action, RPG, Indie, Simulation), validating their role as cross-genre bridges.</p>
+</section>
+
+<!-- 7. Practical Deployment -->
+<section>
+  <h2>7. Practical Deployment</h2>
+
+  <h3>Friend Recommendation System</h3>
+  <p>The projected player-player graph with Jaccard, Common Neighbors, and Adamic-Adar scores serves as the foundation for a friend recommendation engine. The <code>filter_projected_graph.py</code> script applies configurable thresholds (e.g., Jaccard ≥ 0.05, common neighbors ≥ 5) to prune low-similarity edges and exports a GEXF graph suitable for Gephi visualization or downstream recommender logic. In a real Steam community, this could power a "Players Like You" feature — recommending friends based on shared game libraries and playtime patterns.</p>
+
+  <h3>Cross-Genre Influencer Detection</h3>
+  <p>The bridge player pipeline (<code>bridge_players.py</code>) identifies users with high genre entropy who naturally connect different gaming communities. These players are valuable targets for community management, cross-promotion, or influencer outreach. The ego-network clustering further validates which bridge players truly span distinct genre clusters versus simply owning many games in the same genres. A real-world deployment could automate this detection and feed results into a CRM or community analytics dashboard.</p>
+
+  <h3>GAE-Based Prediction Service</h3>
+  <p>The best-performing model (GAE, 0.9664 AUC-ROC) could be operationalized as a prediction API. New players arriving on the platform would have their game libraries encoded, fed through the trained GAE (using pre-computed Node2Vec embeddings as node features), and receive ranked friend suggestions ranked by the reconstructed adjacency scores.</p>
+</section>
+
+<!-- 8. Conclusions -->
+<section>
+  <h2>8. Conclusions</h2>
+
+  <h3>Key Takeaways</h3>
+  <ul style="margin-left: 20px; margin-bottom: 16px;">
+    <li><strong>GAE dominates:</strong> Graph Autoencoders with Node2Vec features achieve 0.9664 AUC-ROC, far exceeding heuristic and ML baselines. The GAE is the only model that produces meaningful Precision@k results (0.90 P@10).</li>
+    <li><strong>Homophily exists:</strong> Friend pairs have ~54% higher mean Jaccard game similarity (0.122 vs 0.079), confirming that shared game libraries are a meaningful signal for friendship.</li>
+    <li><strong>Bridge players connect communities:</strong> 50 high-entropy bridge players were identified, with 2 confirmed as cross-genre connectors via ego-network clustering.</li>
+    <li><strong>Heuristic methods cap at ~0.83 AUC-ROC:</strong> Adamic-Adar and Common Neighbors perform best among unsupervised methods but plateau well below learned approaches.</li>
+  </ul>
+
+  <h3>Limitations</h3>
+  <ul style="margin-left: 20px; margin-bottom: 16px;">
+    <li><strong>Extreme class imbalance (1:997)</strong> — Precision@k is near-zero for non-GAE methods; even Logistic Regression finds 0 friends in the top 50 predictions.</li>
+    <li><strong>Genre coverage ~43%</strong> — The keyword heuristic leaves over half of game edges unlabeled, limiting the genre overlap feature's discriminative power.</li>
+    <li><strong>Dataset scope:</strong> 500 players from 5 gaming groups may not generalize to the broader Steam population (~120M monthly active users).</li>
+    <li><strong>Friendship sparsity:</strong> Only 125 friend edges exist, making cross-validation splits noisy and limiting statistical power for subgroup analysis.</li>
+  </ul>
+
+  <h3>Future Work</h3>
+  <ul style="margin-left: 20px;">
+    <li>Enrich genre coverage using the Steam API <code>appdetails</code> endpoint (with rate-limit mitigation) to label all 17,182 games.</li>
+    <li>Explore temporal features (when games were played) and social graph features (triadic closure) beyond shared game libraries.</li>
+    <li>Deploy the GAE as a real-time recommendation service with incremental training for new players.</li>
+    <li>Extend bridge player analysis with network centrality measures (betweenness, closeness) on the projected graph.</li>
+    <li>Collect a larger, more diverse sample across gaming communities to validate generalizability.</li>
+  </ul>
+</section>
+
+<footer>
+  Steam SNA Project &mdash; Generated from pipeline output data &mdash; June 2026
+</footer>
+
+</div>
+</body>
+</html>
